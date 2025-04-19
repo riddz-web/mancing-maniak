@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Game Mancing Keren</title>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    canvas { background: #87CEEB; display: block; }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas"></canvas>
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let hookY = 0;
+    let isCasting = false;
+    let score = 0;
+
+    const hook = {
+      x: canvas.width / 2,
+      y: 0,
+      width: 5,
+      height: 40,
+      speed: 5
+    };
+
+    const fishes = [];
+
+    function createFish() {
+      const size = Math.random() * 30 + 20;
+      fishes.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * (canvas.height - 100) + 100,
+        size: size,
+        speed: Math.random() * 2 + 1,
+        direction: Math.random() < 0.5 ? -1 : 1
+      });
+    }
+
+    for (let i = 0; i < 5; i++) createFish();
+
+    canvas.addEventListener("click", () => {
+      if (!isCasting) {
+        isCasting = true;
+        hook.y = 0;
+      }
+    });
+
+    function drawHook() {
+      ctx.fillStyle = "black";
+      ctx.fillRect(hook.x, hook.y, hook.width, hook.height);
+    }
+
+    function drawFishes() {
+      ctx.fillStyle = "orange";
+      fishes.forEach(fish => {
+        ctx.beginPath();
+        ctx.arc(fish.x, fish.y, fish.size / 2, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    function updateFishes() {
+      fishes.forEach(fish => {
+        fish.x += fish.speed * fish.direction;
+        if (fish.x < 0 || fish.x > canvas.width) {
+          fish.direction *= -1;
+        }
+      });
+    }
+
+    function checkCollision() {
+      fishes.forEach((fish, index) => {
+        if (
+          hook.y + hook.height >= fish.y - fish.size / 2 &&
+          hook.y <= fish.y + fish.size / 2 &&
+          hook.x >= fish.x - fish.size / 2 &&
+          hook.x <= fish.x + fish.size / 2
+        ) {
+          score++;
+          fishes.splice(index, 1);
+          createFish();
+          isCasting = false;
+        }
+      });
+    }
+
+    function drawScore() {
+      ctx.fillStyle = "white";
+      ctx.font = "24px Arial";
+      ctx.fillText("Score: " + score, 20, 30);
+    }
+
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      drawScore();
+      drawHook();
+      drawFishes();
+      updateFishes();
+
+      if (isCasting) {
+        hook.y += hook.speed;
+        if (hook.y > canvas.height) {
+          isCasting = false;
+        } else {
+          checkCollision();
+        }
+      } else {
+        hook.y = 0;
+      }
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+  </script>
+</body>
+</html>
+
